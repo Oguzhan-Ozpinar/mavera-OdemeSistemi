@@ -1,0 +1,27 @@
+FROM alpine:3.20
+
+ARG POCKETBASE_VERSION=0.38.0
+
+RUN apk add --no-cache ca-certificates unzip wget
+
+WORKDIR /pb
+
+RUN set -eux; \
+  case "$(apk --print-arch)" in \
+    x86_64) pb_arch="amd64" ;; \
+    aarch64) pb_arch="arm64" ;; \
+    armv7) pb_arch="armv7" ;; \
+    *) echo "Unsupported architecture: $(apk --print-arch)" >&2; exit 1 ;; \
+  esac; \
+  wget -q "https://github.com/pocketbase/pocketbase/releases/download/v${POCKETBASE_VERSION}/pocketbase_${POCKETBASE_VERSION}_linux_${pb_arch}.zip" -O /tmp/pocketbase.zip; \
+  unzip /tmp/pocketbase.zip -d /pb; \
+  chmod +x /pb/pocketbase; \
+  rm /tmp/pocketbase.zip
+
+COPY pb_migrations /pb/pb_migrations
+COPY scripts/pocketbase-entrypoint.sh /pb/pocketbase-entrypoint.sh
+RUN chmod +x /pb/pocketbase-entrypoint.sh
+
+EXPOSE 8090
+
+ENTRYPOINT ["/pb/pocketbase-entrypoint.sh"]

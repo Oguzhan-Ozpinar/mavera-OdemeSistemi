@@ -1,0 +1,70 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      NEXT_PUBLIC_BRAND_NAME: ${NEXT_PUBLIC_BRAND_NAME:-Mavera}
+      NEXT_PUBLIC_BRAND_LOGO_URL: ${NEXT_PUBLIC_BRAND_LOGO_URL:-}
+      NEXT_PUBLIC_BRAND_COLOR: ${NEXT_PUBLIC_BRAND_COLOR:-#047857}
+      ENABLE_FOREIGN_CARD_2D: ${ENABLE_FOREIGN_CARD_2D:-false}
+      ENABLE_DIGITAL_WALLETS: ${ENABLE_DIGITAL_WALLETS:-false}
+      NKOLAY_BASE_URL: ${NKOLAY_BASE_URL:-https://paynkolaytest.nkolayislem.com.tr}
+      NKOLAY_PAYMENT_ENDPOINT: ${NKOLAY_PAYMENT_ENDPOINT:-/Vpos/Payment/Payment}
+      NKOLAY_INSTALLMENTS_ENDPOINT: ${NKOLAY_INSTALLMENTS_ENDPOINT:-/Vpos/Payment/PaymentInstallments}
+      NKOLAY_RECURRING_CREATE_ENDPOINT: ${NKOLAY_RECURRING_CREATE_ENDPOINT:-/Vpos/api/RecurringPaymentCreate}
+      NKOLAY_RECURRING_LIST_ENDPOINT: ${NKOLAY_RECURRING_LIST_ENDPOINT:-/Vpos/api/RecurringPaymentList}
+      NKOLAY_RECURRING_CANCEL_ENDPOINT: ${NKOLAY_RECURRING_CANCEL_ENDPOINT:-/Vpos/api/RecurringPaymentCancel}
+      NKOLAY_HOSTED_PAYMENT_ENDPOINT: ${NKOLAY_HOSTED_PAYMENT_ENDPOINT:-/Vpos}
+      NKOLAY_SX: ${NKOLAY_SX:-}
+      NKOLAY_SX_LIST: ${NKOLAY_SX_LIST:-}
+      NKOLAY_SX_CANCEL: ${NKOLAY_SX_CANCEL:-}
+      NKOLAY_SECRET_KEY: ${NKOLAY_SECRET_KEY:-}
+      NKOLAY_CUSTOMER_KEY: ${NKOLAY_CUSTOMER_KEY:-}
+      NKOLAY_MERCHANT_CUSTOMER_NO: ${NKOLAY_MERCHANT_CUSTOMER_NO:-}
+      NKOLAY_CURRENCY_NUMBER: ${NKOLAY_CURRENCY_NUMBER:-949}
+      NKOLAY_DEFAULT_INSTALMENTS: ${NKOLAY_DEFAULT_INSTALMENTS:-12}
+      POCKETBASE_URL: http://pocketbase:8090
+      POCKETBASE_ADMIN_TOKEN: ${POCKETBASE_ADMIN_TOKEN:-}
+      POCKETBASE_ADMIN_EMAIL: ${POCKETBASE_SUPERUSER_EMAIL:-admin@example.com}
+      POCKETBASE_ADMIN_PASSWORD: ${POCKETBASE_SUPERUSER_PASSWORD:-change-this-pocketbase-password}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      CRON_SECRET: ${CRON_SECRET:-change-this-cron-secret}
+      ADMIN_EXPORT_TOKEN: ${ADMIN_EXPORT_TOKEN:-change-this-export-token}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-change-this-admin-session-secret}
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+      args:
+        POCKETBASE_VERSION: ${POCKETBASE_VERSION:-0.38.0}
+    restart: unless-stopped
+    environment:
+      POCKETBASE_SUPERUSER_EMAIL: ${POCKETBASE_SUPERUSER_EMAIL:-admin@example.com}
+      POCKETBASE_SUPERUSER_PASSWORD: ${POCKETBASE_SUPERUSER_PASSWORD:-change-this-pocketbase-password}
+      PB_DIR: /pb/pb_data
+      PB_HTTP: 0.0.0.0:8090
+    volumes:
+      - pocketbase_data:/pb/pb_data
+    ports:
+      - "${POCKETBASE_PORT:-8090}:8090"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8090/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  pocketbase_data:

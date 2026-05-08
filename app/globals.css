@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--brand-ring, rgba(4, 120, 87, 0.28));
+  outline-offset: 2px;
+}
+
+.card-number-mask {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
